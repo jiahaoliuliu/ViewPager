@@ -1,5 +1,8 @@
 package com.jiahaoliuliu.viewpager;
 
+import com.viewpagerindicator.CirclePageIndicator;
+import com.viewpagerindicator.TitlePageIndicator;
+
 import android.os.Bundle;
 import android.app.Fragment;
 import android.app.FragmentManager;
@@ -33,6 +36,10 @@ public class ViewPagerActivity extends FragmentActivity {
         mPager = (ViewPager) findViewById(R.id.pager);
         mPagerAdapter = new ScreenSlidePagerAdapter(getFragmentManager());
         mPager.setAdapter(mPagerAdapter);
+
+      //Bind the title indicator to the adapter
+        CirclePageIndicator circlePageIndicator = (CirclePageIndicator)findViewById(R.id.circles);
+        circlePageIndicator.setViewPager(mPager);
 	}
 
     /**
