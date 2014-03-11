@@ -10,8 +10,12 @@ import android.support.v13.app.FragmentStatePagerAdapter;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.util.Log;
 
 public class ViewPagerActivity extends FragmentActivity {
+	
+	private static final String LOG_TAG = ViewPagerActivity.class.getSimpleName();
+	
     /**
      * The number of pages (wizard steps) to show in this demo.
      */
@@ -22,6 +26,8 @@ public class ViewPagerActivity extends FragmentActivity {
      * and next wizard steps.
      */
     private ViewPager mPager;
+    
+    private int currentPage;
 
     /**
      * The pager adapter, which provides the pages to the view pager widget.
@@ -37,9 +43,36 @@ public class ViewPagerActivity extends FragmentActivity {
         mPagerAdapter = new ScreenSlidePagerAdapter(getFragmentManager());
         mPager.setAdapter(mPagerAdapter);
 
-      //Bind the title indicator to the adapter
-        CirclePageIndicator circlePageIndicator = (CirclePageIndicator)findViewById(R.id.circles);
-        circlePageIndicator.setViewPager(mPager);
+        mPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageSelected(int position) {
+              currentPage = position;
+            }
+
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+              // not needed
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {
+              if (state == ViewPager.SCROLL_STATE_IDLE) {
+              	Log.v(LOG_TAG, "Page Scroll state started. The actual page number is " + currentPage);
+
+              	// If it is in the first page
+                if (currentPage == 0){
+                	mPager.setCurrentItem(NUM_PAGES - 2, false);
+                } else if (currentPage == NUM_PAGES - 1){
+                	mPager.setCurrentItem(1, false);
+                }
+              }
+            }
+          });
+
+        //Bind the title indicator to the adapter
+        //CirclePageIndicator circlePageIndicator = (CirclePageIndicator)findViewById(R.id.circles);
+        //circlePageIndicator.setViewPager(mPager);
+        
 	}
 
     /**
