@@ -1,98 +1,192 @@
 package com.jiahaoliuliu.viewpager;
 
-import com.viewpagerindicator.CirclePageIndicator;
-import com.viewpagerindicator.TitlePageIndicator;
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Timer;
+import java.util.TimerTask;
 
+import android.graphics.Color;
 import android.os.Bundle;
-import android.app.Fragment;
-import android.app.FragmentManager;
-import android.support.v13.app.FragmentStatePagerAdapter;
+import android.os.Parcelable;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.util.Log;
+import android.view.Gravity;
+import android.view.MotionEvent;
+import android.view.View;
+import android.view.View.OnTouchListener;
+import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 public class ViewPagerActivity extends FragmentActivity {
-	
+
 	private static final String LOG_TAG = ViewPagerActivity.class.getSimpleName();
-	
-    /**
-     * The number of pages (wizard steps) to show in this demo.
-     */
-    private static final int NUM_PAGES = 5;
 
-    /**
-     * The pager widget, which handles animation and allows swiping horizontally to access previous
-     * and next wizard steps.
-     */
-    private ViewPager mPager;
-    
-    private int currentPage;
+	/**
+	 * The number of pages (wizard steps) to show in this demo.
+	 */
+	private static final int NUM_PAGES = 3;
 
-    /**
-     * The pager adapter, which provides the pages to the view pager widget.
-     */
-    private PagerAdapter mPagerAdapter;
+	/**
+	 * The pager widget, which handles animation and allows swiping horizontally to access previous
+	 * and next wizard steps.
+	 */
+	private ViewPager mPager;
+
+	TimerTask task;
+
+	ImageView indicator;
+
+	/**
+	 * The pager adapter, which provides the pages to the view pager widget.
+	 */
+	private PagerAdapter mPagerAdapter;
+
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.view_pager_layout);
 
-        // Instantiate a ViewPager and a PagerAdapter.
-        mPager = (ViewPager) findViewById(R.id.pager);
-        mPagerAdapter = new ScreenSlidePagerAdapter(getFragmentManager());
-        mPager.setAdapter(mPagerAdapter);
+		indicator = (ImageView) findViewById(R.id.indicator);
 
-        mPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
-            @Override
-            public void onPageSelected(int position) {
-              currentPage = position;
-            }
+		// Instantiate a ViewPager and a PagerAdapter.
+		mPager = (ViewPager) findViewById(R.id.pager);
+		ArrayList<String> list = new ArrayList<String>();
+		
+		list.add("primera posicion");
+		for (int i = 0; i < NUM_PAGES;++i) {
+			list.add("Hola, soy la posicion "+i);
+		}
+		list.add("ultima posicion");
+		
+		mPagerAdapter = new CircularPagerAdapter(list);
+		mPager.setAdapter(mPagerAdapter);
+		mPager.setOffscreenPageLimit(3);
+		mPager.setCurrentItem(1,false);
 
-            @Override
-            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-              // not needed
-            }
+		try {
+			Field mScroller;
+			mScroller = ViewPager.class.getDeclaredField("mScroller");
+			mScroller.setAccessible(true); 
+			FixedSpeedScroller scroller = new FixedSpeedScroller(mPager.getContext());
+			scroller.setFixedDuration(1000);
+			mScroller.set(mPager, scroller);
+		} catch (Exception e) {
+		} 
 
-            @Override
-            public void onPageScrollStateChanged(int state) {
-              if (state == ViewPager.SCROLL_STATE_IDLE) {
-              	Log.v(LOG_TAG, "Page Scroll state started. The actual page number is " + currentPage);
 
-              	// If it is in the first page
-                if (currentPage == 0){
-                	mPager.setCurrentItem(NUM_PAGES - 2, false);
-                } else if (currentPage == NUM_PAGES - 1){
-                	mPager.setCurrentItem(1, false);
-                }
-              }
-            }
-          });
+		mPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
 
-        //Bind the title indicator to the adapter
-        //CirclePageIndicator circlePageIndicator = (CirclePageIndicator)findViewById(R.id.circles);
-        //circlePageIndicator.setViewPager(mPager);
-        
+			@Override
+			public void onPageSelected(int position) {
+				if (position == 0) {
+					position = NUM_PAGES;
+				} else if (position == NUM_PAGES+1){
+					position = 1;
+				}
+				int indexDrawable = position-1;
+				int id = getResources().getIdentifier("paginador0"+indexDrawable, "drawable", getPackageName());
+				indicator.setImageDrawable(getResources().getDrawable(id));
+			}
+
+			@Override
+			public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) { }
+
+			@Override
+			public void onPageScrollStateChanged(int state) { 
+
+				if (state == ViewPager.SCROLL_STATE_IDLE) {
+					int position = mPager.getCurrentItem();
+					if (position == 0) {
+						position = NUM_PAGES;
+						mPager.setCurrentItem(position,false);
+					} else if (position == NUM_PAGES+1) {
+						position = 1;
+						mPager.setCurrentItem(position,false);
+					}
+				}
+			}
+		});
+
+		/*
+		// Creates the timer to automatically scroll the view pager.
+		task = new TimerTask() {
+			public void run() {
+				runOnUiThread(new Runnable() {
+
+					@Override
+					public void run() {
+						boolean animation = true;
+						int position = mPager.getCurrentItem()+1;
+						mPager.setCurrentItem(position,animation);
+					}
+				});
+			}
+		};
+		Timer timer = new Timer();
+		timer.schedule(task, 3000, 3000);
+
+		// Cancel the timer if the user has clicked on the viewPager
+		mPager.setOnTouchListener(new OnTouchListener() {
+
+			@Override
+			public boolean onTouch(View v, MotionEvent event) {
+				task.cancel();
+				return false;
+			}
+		});
+		*/
 	}
 
-    /**
-     * A simple pager adapter that represents 5 {@link ScreenSlidePageFragment} objects, in
-     * sequence.
-     */
-    private class ScreenSlidePagerAdapter extends FragmentStatePagerAdapter {
-        public ScreenSlidePagerAdapter(FragmentManager fm) {
-            super(fm);
-        }
+	private class CircularPagerAdapter extends PagerAdapter {
 
-        @Override
-        public Fragment getItem(int position) {
-            return ScreenSlidePageFragment.create(position);
-        }
+		private ArrayList<String> data;
+		private int currentPos;
 
-        @Override
-        public int getCount() {
-            return NUM_PAGES;
-        }
-    }
+		public CircularPagerAdapter(ArrayList<String> list) {
+			super();
+			data = list;
+			currentPos = -1;
+		}
+
+		public int getCount() {
+			return data.size();
+		}
+
+		public Object instantiateItem(ViewGroup container, int position) {
+				LinearLayout root = new LinearLayout(ViewPagerActivity.this);
+				TextView text = new TextView(ViewPagerActivity.this);
+				text.setGravity(Gravity.CENTER);
+				int index = position;
+				if (position == 0){
+					index = NUM_PAGES;
+				} else if (position == NUM_PAGES+1){
+					index = 1;
+				}
+				currentPos = index;
+				text.setText(data.get(index));
+				text.setTextColor(Color.WHITE);
+				root.addView(text);
+				((ViewPager) container).addView(root, 0);
+				return root; 
+		}
+
+		@Override
+		public void destroyItem(View container, int position, Object object) { ((ViewPager) container).removeView((View) object); }
+		
+		@Override
+		public void finishUpdate(View container) { }
+		@Override
+		public boolean isViewFromObject(View view, Object object) { return view == ((View) object); }
+		@Override
+		public void restoreState(Parcelable state, ClassLoader loader) { }
+		@Override
+		public Parcelable saveState() {  return null; }
+		@Override
+		public void startUpdate(View container) { }
+	}
 
 }

@@ -1,4 +1,5 @@
 <LinearLayout
+    android:id="@+id/root"
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
@@ -11,9 +12,12 @@
 	    android:layout_height="75dp"
 	    android:background="@android:color/black"
 	    />
-	
-	<com.viewpagerindicator.CirclePageIndicator
-        android:id="@+id/circles"
-        android:layout_height="wrap_content"
-        android:layout_width="fill_parent" />
+
+	<ImageView
+	    android:id="@+id/indicator"
+	    android:layout_width="match_parent"
+	    android:layout_height="wrap_content"
+	    android:layout_margin="10dp"
+	    android:src="@drawable/paginador00" />
+
 </LinearLayout>
